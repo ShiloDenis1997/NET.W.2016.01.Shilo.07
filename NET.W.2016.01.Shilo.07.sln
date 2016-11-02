@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task2.Logic", "Task2.Logic\Task2.Logic.csproj", "{49F450A1-DB5C-4E6C-91CC-2F8E96417ECC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Task2.Logic.Tests", "Task2.Logic.Tests\Task2.Logic.Tests.csproj", "{E7D47C08-BA2D-4504-8FF1-806C31FC9DDF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{49F450A1-DB5C-4E6C-91CC-2F8E96417ECC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49F450A1-DB5C-4E6C-91CC-2F8E96417ECC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49F450A1-DB5C-4E6C-91CC-2F8E96417ECC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7D47C08-BA2D-4504-8FF1-806C31FC9DDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7D47C08-BA2D-4504-8FF1-806C31FC9DDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7D47C08-BA2D-4504-8FF1-806C31FC9DDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7D47C08-BA2D-4504-8FF1-806C31FC9DDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

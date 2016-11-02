@@ -86,32 +86,47 @@ namespace Task2.Logic
             return ret;
         }
 
-        public static Polinome operator +(Polinome polinome1, Polinome polinome2)
+        public static Polinome operator +(Polinome left, Polinome right)
         {
-            int maxPower = Math.Max(polinome1.MaxPower, polinome2.MaxPower);
+            int maxPower = Math.Max(left.MaxPower, right.MaxPower);
             Polinome ret = new Polinome (maxPower + 1);
             for (int i = 0; i <= maxPower; i++)
-                ret[i] = checked (polinome1[i] + polinome2[i]);
+                ret[i] = checked (left[i] + right[i]);
             return ret;
         }
 
-        public static Polinome operator -(Polinome polinome1, Polinome polinome2)
+        public static Polinome operator -(Polinome left, Polinome right)
         {
-            int maxPower = Math.Max(polinome1.MaxPower, polinome2.MaxPower);
+            int maxPower = Math.Max(left.MaxPower, right.MaxPower);
             Polinome ret = new Polinome(maxPower + 1);
             for (int i = 0; i <= maxPower; i++)
-                ret[i] = checked(polinome1[i] - polinome2[i]);
+                ret[i] = checked(left[i] - right[i]);
             return ret;
         }
 
-        public static Polinome operator *(Polinome polinome1, Polinome polinome2)
+        public static Polinome operator *(Polinome left, Polinome right)
         {
-            int maxPower = polinome1.MaxPower * polinome2.MaxPower;
+            int maxPower = left.MaxPower * right.MaxPower;
             Polinome ret = new Polinome(maxPower + 1);
-            for (int i = 0; i <= polinome1.MaxPower; i++)
-                for (int j = 0; j <= polinome2.MaxPower; j++)
-                    ret[i + j] = checked(ret[i + j] + polinome1[i] * polinome2[j]);
+            for (int i = 0; i <= left.MaxPower; i++)
+                for (int j = 0; j <= right.MaxPower; j++)
+                    ret[i + j] = checked(ret[i + j] + left[i] * right[j]);
             return ret;
+        }
+
+        public static Polinome Add(Polinome left, Polinome right)
+        {
+            return left + right;
+        }
+
+        public static Polinome Subtract(Polinome left, Polinome right)
+        {
+            return left - right;
+        }
+
+        public static Polinome Multiple(Polinome left, Polinome right)
+        {
+            return left * right;
         }
 
         public int this[int power]
