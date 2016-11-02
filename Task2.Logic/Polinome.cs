@@ -64,7 +64,7 @@ namespace Task2.Logic
                         ($"{nameof(power)} cannot be less than zero");
                 if (power < capacity)
                     factors[power] = value;
-                capacity = power*2 + 1;
+                Capacity = power*2 + 1;
                 factors[power] = value;
             }
         }
