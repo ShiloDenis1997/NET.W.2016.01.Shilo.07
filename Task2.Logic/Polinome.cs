@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,12 +32,20 @@ namespace Task2.Logic
 
         public Polinome(int capacity = 10)
         {
+            if (capacity == 0)
+                throw new ArgumentException
+                    ($"{nameof(capacity)} must be greater than zero");
             Capacity = capacity;
             MaxPower = 0;
         }
 
         public Polinome(int[] factors)
         {
+            if (factors == null)
+                throw new ArgumentNullException($"{nameof(factors)} cannot be null");
+            if (factors.Length == 0)
+                throw new ArgumentNullException
+                    ($"{nameof(factors.Length)} must be greater than zero");
             Capacity = factors.Length;
             for (int i = 0; i < factors.Length; i++)
             {
@@ -44,6 +53,65 @@ namespace Task2.Logic
                 if (factors[i] != 0)
                     MaxPower = i;
             }
+        }
+
+        public Polinome(Polinome polinome)
+        {
+            if (polinome == null)
+                throw new ArgumentNullException($"{nameof(polinome)} cannot be null");
+            Capacity = polinome.Capacity;
+            MaxPower = polinome.MaxPower;
+            for (int i = 0; i <= MaxPower; i++)
+                this[i] = polinome[i];
+        }
+
+        public double Count(double x)
+        {
+            double res = 0;
+            for (int i = MaxPower; i >= 0; i--)
+                res = res + Math.Pow(x, i)*this[i];
+            return res;
+        }
+
+        public static Polinome operator +(Polinome polinome)
+        {
+            return polinome;
+        }
+
+        public static Polinome operator -(Polinome polinome)
+        {
+            Polinome ret = new Polinome(polinome);
+            for (int i = 0; i <= ret.MaxPower; i++)
+                ret[i] *= -1;
+            return ret;
+        }
+
+        public static Polinome operator +(Polinome polinome1, Polinome polinome2)
+        {
+            int maxPower = Math.Max(polinome1.MaxPower, polinome2.MaxPower);
+            Polinome ret = new Polinome (maxPower + 1);
+            for (int i = 0; i <= maxPower; i++)
+                ret[i] = checked (polinome1[i] + polinome2[i]);
+            return ret;
+        }
+
+        public static Polinome operator -(Polinome polinome1, Polinome polinome2)
+        {
+            int maxPower = Math.Max(polinome1.MaxPower, polinome2.MaxPower);
+            Polinome ret = new Polinome(maxPower + 1);
+            for (int i = 0; i <= maxPower; i++)
+                ret[i] = checked(polinome1[i] - polinome2[i]);
+            return ret;
+        }
+
+        public static Polinome operator *(Polinome polinome1, Polinome polinome2)
+        {
+            int maxPower = polinome1.MaxPower * polinome2.MaxPower;
+            Polinome ret = new Polinome(maxPower + 1);
+            for (int i = 0; i <= polinome1.MaxPower; i++)
+                for (int j = 0; j <= polinome2.MaxPower; j++)
+                    ret[i + j] = checked(ret[i + j] + polinome1[i] * polinome2[j]);
+            return ret;
         }
 
         public int this[int power]
