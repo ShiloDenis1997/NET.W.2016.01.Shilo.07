@@ -15,12 +15,31 @@ namespace Task2.Logic
         private int capacity;
         private static double epsilon;
 
+        /// <summary>
+        /// Real size of <see cref="Polinome"/>
+        /// </summary>
+        /// <exception cref="ArgumentException">Throws if value is 
+        /// less of equal to 0</exception>
+        private int Capacity
+        {
+            get { return capacity; }
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentException
+                        ($"{nameof(Capacity)} cannot be less or " +
+                         "equal to zero");
+                capacity = value;
+            }
+        }
+
         public static double Epsilon {
             get { return epsilon; }
             private set
             {
-                if (epsilon <= 0 || epsilon >= 1)
-                    throw new ArgumentException($"{nameof(Epsilon)} must be positive" +
+                if (value <= 0 || value >= 1)
+                    throw new ArgumentException
+                        ($"{nameof(Epsilon)} must be positive " +
                                                 "and less than one" );
                 epsilon = value;
             } }
@@ -28,31 +47,22 @@ namespace Task2.Logic
         public int MaxPower { get; private set; }
 
         /// <summary>
-        /// Real size of <see cref="Polinome"/>
+        /// Initializes static variables from App.config
         /// </summary>
-        /// <exception cref="ArgumentException">Throws if value is 
-        /// less of equal to 0</exception>
-        public int Capacity
-        {
-            get { return capacity; }
-            private set
-            {
-                if (value <= 0)
-                    throw new ArgumentException
-                        ($"{nameof(Capacity)} cannot be less or equal to zero");
-                capacity = value;
-            }
-        }
-
         static Polinome()
         {
             try
             {
-                Epsilon = double.Parse(ConfigurationManager.AppSettings["epsilon"]);
+                string epsStr = ConfigurationManager.AppSettings["epsilon"];
+                Epsilon = double.Parse(epsStr);
             }
             catch (ConfigurationErrorsException ex)
             {
                 throw new ConfigurationErrorsException("Can't get epsilon value", ex);
+            }
+            catch (FormatException ex)
+            {
+                throw new ConfigurationErrorsException("epsilon has invalid format", ex);
             }
             catch (Exception ex)
             {
@@ -98,6 +108,7 @@ namespace Task2.Logic
                 throw new ArgumentNullException($"{nameof(polinome)} cannot be null");
             Capacity = polinome.Capacity;
             MaxPower = polinome.MaxPower;
+            factors = new double[Capacity];
             for (int i = 0; i <= MaxPower; i++)
                 this[i] = polinome[i];
         }
@@ -158,9 +169,9 @@ namespace Task2.Logic
                 throw new ArgumentNullException($"{nameof(right)} cannot be null");
             int maxPower = Math.Max(left.MaxPower, right.MaxPower);
             Polinome ret = new Polinome (maxPower + 1);
+            ret.MaxPower = maxPower;
             for (int i = 0; i <= maxPower; i++)
                 ret[i] = left[i] +  right[i];
-            ret.MaxPower = maxPower;
             ReduceMaxPower(ret);
             return ret;
         }
@@ -182,10 +193,10 @@ namespace Task2.Logic
                 throw new ArgumentNullException($"{nameof(right)} cannot be null");
             int maxPower = left.MaxPower + right.MaxPower;
             Polinome ret = new Polinome(maxPower + 1);
+            ret.MaxPower = maxPower;
             for (int i = 0; i <= left.MaxPower; i++)
                 for (int j = 0; j <= right.MaxPower; j++)
                     ret[i + j] = ret[i + j] + left[i] * right[j];
-            ret.MaxPower = maxPower;
             ReduceMaxPower(ret);
             return ret;
         }
