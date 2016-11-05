@@ -1,16 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace Task2.Logic
 {
-    public class Polinome : IEquatable<Polinome>
+    public sealed class Polinome : IEquatable<Polinome>, ICloneable
     {
-        private int[] factors;
+        private readonly double[] factors;
         private int capacity;
+        private static double epsilon;
+
+        public static double Epsilon {
+            get { return epsilon; }
+            private set
+            {
+                if (epsilon <= 0 || epsilon >= 1)
+                    throw new ArgumentException($"{nameof(Epsilon)} must be positive" +
+                                                "and less than one" );
+                epsilon = value;
+            } }
 
         public int MaxPower { get; private set; }
 
@@ -27,28 +40,24 @@ namespace Task2.Logic
                 if (value <= 0)
                     throw new ArgumentException
                         ($"{nameof(Capacity)} cannot be less or equal to zero");
-                int[] t = factors;
-                factors = new int[value];
-                if (t != null)
-                    Array.Copy(t, factors, capacity);
                 capacity = value;
             }
         }
 
-        /// <summary>
-        /// Creates new <see cref="Polinome"/> with 
-        /// <paramref name="capacity"/> size
-        /// </summary>
-        /// <param name="capacity"></param>
-        /// <exception cref="ArgumentException">Throws if 
-        /// <paramref name="capacity"/> is less or equal to zero</exception>
-        public Polinome(int capacity = 10)
+        static Polinome()
         {
-            if (capacity <= 0)
-                throw new ArgumentException
-                    ($"{nameof(capacity)} must be greater than zero");
-            Capacity = capacity;
-            MaxPower = 0;
+            try
+            {
+                Epsilon = double.Parse(ConfigurationManager.AppSettings["epsilon"]);
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                throw new ConfigurationErrorsException("Can't get epsilon value", ex);
+            }
+            catch (Exception ex)
+            {
+                throw  new ConfigurationErrorsException("epsilon has an invalid value", ex);
+            }
         }
 
         /// <summary>
@@ -59,7 +68,7 @@ namespace Task2.Logic
         /// <paramref name="factors"/> is null</exception>
         /// <exception cref="ArgumentException">Throws 
         /// if <paramref name="factors"/> length is equal to zero</exception>
-        public Polinome(int[] factors)
+        public Polinome(params double[] factors)
         {
             if (factors == null)
                 throw new ArgumentNullException($"{nameof(factors)} cannot be null");
@@ -67,10 +76,11 @@ namespace Task2.Logic
                 throw new ArgumentException
                     ($"{nameof(factors.Length)} must be greater than zero");
             Capacity = factors.Length;
-            for (int i = 0; i < factors.Length; i++)
+            this.factors = new double[Capacity];
+            for (int i = 0; i < Capacity; i++)
             {
                 this.factors[i] = factors[i];
-                if (factors[i] != 0)
+                if (Math.Abs(factors[i]) > Epsilon)
                     MaxPower = i;
             }
         }
@@ -93,6 +103,15 @@ namespace Task2.Logic
         }
 
         /// <summary>
+        /// Constructs Polinome with setted capacity
+        /// </summary>
+        /// <param name="capactity"></param>
+        private Polinome(int capactity)
+        {
+            factors = new double[capactity];
+            Capacity = capactity;
+        }
+        /// <summary>
         /// Counts the value of Pn(x)
         /// </summary>
         /// <param name="x"></param>
@@ -101,7 +120,8 @@ namespace Task2.Logic
         {
             double res = 0;
             for (int i = MaxPower; i >= 0; i--)
-                res = res + Math.Pow(x, i)*this[i];
+                if (Math.Abs(this[i]) > Epsilon)
+                    res = res + Math.Pow(x, i) * this[i];
             return res;
         }
 
@@ -139,7 +159,8 @@ namespace Task2.Logic
             int maxPower = Math.Max(left.MaxPower, right.MaxPower);
             Polinome ret = new Polinome (maxPower + 1);
             for (int i = 0; i <= maxPower; i++)
-                ret[i] = checked (left[i] + right[i]);
+                ret[i] = left[i] +  right[i];
+            ret.MaxPower = maxPower;
             ReduceMaxPower(ret);
             return ret;
         }
@@ -148,16 +169,7 @@ namespace Task2.Logic
         /// <paramref name="left"/>  or <paramref name="right"/> is null</exception>
         public static Polinome operator -(Polinome left, Polinome right)
         {
-            if (left == null)
-                throw new ArgumentNullException($"{nameof(left)} cannot be null");
-            if (right == null)
-                throw new ArgumentNullException($"{nameof(right)} cannot be null");
-            int maxPower = Math.Max(left.MaxPower, right.MaxPower);
-            Polinome ret = new Polinome(maxPower + 1);
-            for (int i = 0; i <= maxPower; i++)
-                ret[i] = checked(left[i] - right[i]);
-            ReduceMaxPower(ret);
-            return ret;
+            return left + (-right);
         }
 
         /// <exception cref="ArgumentNullException">Throws if 
@@ -168,13 +180,28 @@ namespace Task2.Logic
                 throw new ArgumentNullException($"{nameof(left)} cannot be null");
             if (right == null)
                 throw new ArgumentNullException($"{nameof(right)} cannot be null");
-            int maxPower = left.MaxPower * right.MaxPower;
+            int maxPower = left.MaxPower + right.MaxPower;
             Polinome ret = new Polinome(maxPower + 1);
             for (int i = 0; i <= left.MaxPower; i++)
                 for (int j = 0; j <= right.MaxPower; j++)
-                    ret[i + j] = checked(ret[i + j] + left[i] * right[j]);
+                    ret[i + j] = ret[i + j] + left[i] * right[j];
+            ret.MaxPower = maxPower;
             ReduceMaxPower(ret);
             return ret;
+        }
+
+        public static bool operator ==(Polinome left, Polinome right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+            if (ReferenceEquals(left, null))
+                return false;
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Polinome left, Polinome right)
+        {
+            return !(left == right);
         }
 
         /// <exception cref="ArgumentNullException">Throws if 
@@ -198,59 +225,53 @@ namespace Task2.Logic
             return left * right;
         }
 
-        public int this[int power]
+        public double this[int power]
         {
             get
             {
                 if (power < 0)
-                    throw new IndexOutOfRangeException
+                    throw new ArgumentOutOfRangeException
                         ($"{nameof(power)} cannot be less than zero");
                 if (power > MaxPower)
                     return 0;
                 return factors[power];
             }
-            set
+            private set
             {
                 if (power < 0)
-                    throw new IndexOutOfRangeException
+                    throw new ArgumentOutOfRangeException
                         ($"{nameof(power)} cannot be less than zero");
-                if (power < capacity)
-                {
-                    factors[power] = value;
-                }
-                else
-                {
-                    Capacity = power*2 + 1;
-                    factors[power] = value;
-                }
-                if (power > MaxPower && factors[power] != 0)
-                    MaxPower = power;
+                if (power >= Capacity)
+                    throw new ArgumentOutOfRangeException
+                        ($"{nameof(power)} cannot be greater than {nameof(Capacity)}");
+                
+                factors[power] = value;
             }
         }
 
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder(MaxPower);
-            if (this[MaxPower] != 0)
-                sb.Append($"{this[MaxPower]}x^{MaxPower}");
+            if (Math.Abs(this[MaxPower]) > Epsilon)
+                sb.Append($"{this[MaxPower]:##,###}x^{MaxPower}");
             else
                 return "0";
             for (int i = MaxPower - 1; i > 1; i--)
             {
-                if (this[i] == 0)
+                if (Math.Abs(this[i]) <= Epsilon)
                     continue;
                 sb.Append(this[i] < 0 
-                    ? $" - {(-this[i] == 1 ? "" : (-this[i]).ToString())}x^{i}" 
-                    : $" + {(this[i] == 1 ? "" : this[i].ToString())}x^{i}");
+                    ? $" - {(Math.Abs(this[i] + 1) <= Epsilon ? "" : (-this[i]).ToString("##,###"))}x^{i}" 
+                    : $" + {(Math.Abs(this[i] - 1) <= Epsilon ? "" : this[i].ToString("##,###"))}x^{i}");
             }
-            if (this[1] != 0)
+            if (Math.Abs(this[1]) > Epsilon)
                 sb.Append(this[1] < 0
-                    ? $" - {(-this[1] == 1 ? "" : (-this[1]).ToString())}x"
-                    : $" + {(this[1] == 1 ? "" : this[1].ToString())}x");
-            if (this[0] != 0)
+                    ? $" - {(Math.Abs(this[1] + 1) <= Epsilon ? "" : (-this[1]).ToString("##,###"))}x"
+                    : $" + {(Math.Abs(this[1] - 1) <= Epsilon ? "" : this[1].ToString("##,###"))}x");
+            if (Math.Abs(this[0]) > Epsilon)
                 sb.Append(this[0] < 0
-                    ? $" - {-this[0]}"
-                    : $" + {this[0]}");
+                    ? $" - {-this[0]:##,###}"
+                    : $" + {this[0]:##,###}");
             return sb.ToString();
         }
 
@@ -266,9 +287,19 @@ namespace Task2.Logic
             }
         }
 
+        public Polinome Clone()
+        {
+            return new Polinome(this);
+        }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
+
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (ReferenceEquals(obj, null))
                 return false;
             if (ReferenceEquals(this, obj))
                 return true;
@@ -279,7 +310,7 @@ namespace Task2.Logic
 
         public bool Equals(Polinome other)
         {
-            if (other == null)
+            if (ReferenceEquals(other, null))
                 return false;
             if (ReferenceEquals(this, other))
                 return true;
@@ -293,14 +324,14 @@ namespace Task2.Logic
             if (p1.MaxPower != p2.MaxPower)
                 return false;
             for (int i = 0; i < p1.MaxPower; i++)
-                if (p1[i] != p2[i])
+                if (Math.Abs(p1[i] - p2[i]) > Epsilon)
                     return false;
             return true;
         }
 
         private static void ReduceMaxPower(Polinome ret)
         {
-            while (ret[ret.MaxPower] == 0 && ret.MaxPower > 0)
+            while (Math.Abs(ret[ret.MaxPower]) <= Epsilon && ret.MaxPower > 0)
                 ret.MaxPower--;
         }
 
